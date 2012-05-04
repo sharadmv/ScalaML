@@ -1,0 +1,2 @@
+scalac MarkovChain.java
+scala MarkovChain <file> <depth> <length>
