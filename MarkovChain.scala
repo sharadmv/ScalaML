@@ -1,22 +1,42 @@
 import java.util.{HashMap, LinkedList, Arrays}
+import java.io._
 import scala.collection.JavaConversions._
 import scala.util.Random
 import scala.io.Source
 object MarkovChain {
   def main(args:Array[String]){
-    var mc:MarkovChain[Char] = new MarkovChain[Char]()
-      var source:String = Source.fromFile(args(0)).mkString("").trim()
-      mc.train(source.toCharArray(),Integer.parseInt(args(1)))
-      println(mc.walk(Integer.parseInt(args(1)),Integer.parseInt(args(2))).deep.mkString(""))
+    var mc:MarkovChain[Byte] = new MarkovChain[Byte]()
+      var file:File = new File(args(0))
+      var is:FileInputStream = new FileInputStream(file)
+      var output:File = new File("output")
+      var fo:FileOutputStream= new FileOutputStream(output)
+      var content:Array[Byte] = new Array[Byte](file.length.asInstanceOf[Int])
+      is.read(content)
+      System.err.println("Training...")
+      mc.train(content, Integer.parseInt(args(1)))
+      System.err.println("Done training...")
+      System.err.println("Generating...")
+      var result:Array[Any] = (mc.walk(Integer.parseInt(args(1)),Integer.parseInt(args(2)))).asInstanceOf[Array[Any]]
+      System.err.println("Done generating...")
+      System.err.println("Writing...")
+      var bytes:Array[Byte] = new Array[Byte](result.length)
+      for (i <- 0 until result.length){
+        bytes(i) = result(i).asInstanceOf[Byte]
+      }
+      fo.write(bytes)
+      fo.close()
+      println((new String(bytes.map(_.toChar))))
+      System.err.println("Done writing...")
   }
 }
 class MarkovChain[T]() {
   var map:HashMap[T,Node] = new HashMap[T, Node]() 
-    def walk[T:ClassManifest](depth:Int, length:Int):Array[Any] = {
-      var arr = new Array[Any](length)
-      var list = new LinkedList[Any]()
+    var arr:Array[T] = null
+    def walk(depth:Int, length:Int):Array[T] = {
+      arr = new Array[Any](length).asInstanceOf[Array[T]]
+      var list = new LinkedList[T]().asInstanceOf[LinkedList[T]]
       walkFrom(depth,getRandom(),list , arr, 0, length)
-      return arr 
+      return arr.asInstanceOf[Array[T]] 
     }
     private def getRandom():T = {
         var total = 0
@@ -40,7 +60,7 @@ class MarkovChain[T]() {
       }
       return temp.value
     }
-    private def walkFrom(depth:Int, value:T, t:LinkedList[Any],fin:Array[Any], i:Int,length:Int):Array[Any] = {
+    private def walkFrom(depth:Int, value:T, t:LinkedList[T],fin:Array[T], i:Int,length:Int):Array[T] = {
       if (i == length){
         return fin
       } else if (i==1){
